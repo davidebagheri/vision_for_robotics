@@ -10,7 +10,7 @@ include_directories(
 )
 
 add_library(${PROJECT_NAME} SHARED
-	src/data.cpp
+	src/utils.cpp
 )
 
 add_executable( main main.cpp)
