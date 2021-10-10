@@ -13,9 +13,8 @@ int main(int argc, char** argv){
 	std::vector<std::vector<float>> D = read_csv<float>(path_to_D);
 
 	// Transform data to cv
-	cv::Mat K_cv = from_vec_to_cv(K);
-	cv::Mat D_cv = from_vec_to_cv(D);
-	
+	cv::Mat K_cv = from_vec_to_cv_mat(K);
+	cv::Mat D_cv = from_vec_to_cv_mat(D);	
 
 	return 0;
 }
