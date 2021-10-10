@@ -48,3 +48,24 @@ std::vector<std::vector<T>> read_csv(const std::string& path_to_csv, char delimi
     }
     return data;
 } 
+
+template <class T>
+std::vector<T> read_csv_line(const std::string& path_to_csv, int line_n, char delimiter = ' '){
+    std::fstream file(path_to_csv);
+    std::string line;
+
+    while (std::getline(file, line) && line_n > 0){
+        line_n--;
+    }
+
+    std::stringstream ss(line);
+    std::vector<T> res;
+    T val;
+
+    while (ss >> val){
+        res.emplace_back(val);
+        if (ss.peek() == delimiter) ss.ignore();
+    }
+
+    return res;
+}

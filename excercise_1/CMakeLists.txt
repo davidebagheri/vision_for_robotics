@@ -13,5 +13,5 @@ add_library(${PROJECT_NAME} SHARED
 	src/utils.cpp
 )
 
-add_executable( main main.cpp)
-target_link_libraries(main ${OpenCV_LIBS} ${PROJECT_NAME})
+add_executable( show_cube show_cube.cpp)
+target_link_libraries(show_cube ${OpenCV_LIBS} ${PROJECT_NAME})
