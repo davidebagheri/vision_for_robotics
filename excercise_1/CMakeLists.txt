@@ -13,5 +13,8 @@ add_library(${PROJECT_NAME} SHARED
 	src/utils.cpp
 )
 
-add_executable( show_cube show_cube.cpp)
+add_executable(show_cube show_cube.cpp)
 target_link_libraries(show_cube ${OpenCV_LIBS} ${PROJECT_NAME})
+
+add_executable(undistort_image undistort_image.cpp)
+target_link_libraries(undistort_image ${OpenCV_LIBS} ${PROJECT_NAME})

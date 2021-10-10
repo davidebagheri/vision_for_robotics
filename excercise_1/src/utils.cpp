@@ -78,6 +78,7 @@ cv::Mat poseVectorToTransformationMatrix(const std::vector<float>& pose)
 cv::Vec2f projectPoint(const std::vector<float>& point_W, const cv::Mat& K, const std::vector<float>& pose_CW)
 {
     cv::Vec2f res;
+
     // Point in homogeneous form
     cv::Mat point_cv_W = to_cv_vec(point_W);
     cv::Mat h_point_cv_W = to_homog(point_cv_W);
@@ -91,6 +92,46 @@ cv::Vec2f projectPoint(const std::vector<float>& point_W, const cv::Mat& K, cons
     // Scale normalization 
     res[0] = proj_point.at<float>(0) / proj_point.at<float>(2);
     res[1] = proj_point.at<float>(1) / proj_point.at<float>(2);
-    
+
     return res;
+}
+
+cv::Point2f toDistortPixelCoords(const cv::Point2f& undist_point, 
+                                const std::vector<float>& dist_params, 
+                                const cv::Point2f& img_center)
+{
+    assert(dist_params.size() == 2);
+    cv::Point2f diff = undist_point - img_center;
+    float r2 = std::pow(diff.x, 2) + std::pow(diff.y, 2);
+
+    cv::Point2f dist_point = (1 + dist_params[0] * r2 + dist_params[1] * r2 * r2) * diff + img_center;
+
+    return dist_point;
+}
+
+cv::Mat undistortImage(cv::Mat dist_image, const std::vector<float>& dist_params)
+{
+    assert(dist_image.channels() == 1);  // Limit this function only to gray image, I am sorry :(
+    int h = dist_image.rows;
+    int w = dist_image.cols;
+    cv::Point2f img_center = {h/2, w/2};
+
+    cv::Mat und_image = cv::Mat::zeros(h, w, CV_8U);
+
+    for (int i = 0; i < h; i++){
+        for (int j = 0; j < w; j++){
+            cv::Point2f undist_pixel = {i, j};
+
+            // Nearest neighbor pixel
+            cv::Point2i dist_pixel = toDistortPixelCoords(undist_pixel, dist_params, img_center);
+
+            // Inbound check
+            if (dist_pixel.x < 0 or dist_pixel.x > h) continue;
+            if (dist_pixel.y < 0 or dist_pixel.y > w) continue;
+
+            und_image.at<uint8_t>(i,j) = dist_image.at<uint8_t>(dist_pixel.x, dist_pixel.y);
+        }
+    }
+
+    return und_image;
 }

@@ -5,18 +5,15 @@
 int main(int argc, char** argv){
 	std::string path_to_undistorted = "../data/images_undistorted";
 	std::string path_to_K = "../data/K.txt";
-	std::string path_to_D = "../data/D.txt";
 	std::string path_to_csv = "../data/poses.txt";
 
 	// Get data
 	std::vector<std::string> undistorted_imgs_path = get_images_path(path_to_undistorted);
 	std::vector<std::vector<float>> K = read_csv<float>(path_to_K);
-	std::vector<std::vector<float>> D = read_csv<float>(path_to_D);
 	cv::Mat undist_img = cv::imread(undistorted_imgs_path[0]);
 
 	// Transform data to cv
 	cv::Mat K_cv = from_vec_to_cv_mat(K);
-	cv::Mat D_cv = from_vec_to_cv_mat(D);	
 
 	// Read the first pose
 	std::vector<float> first_pose = read_csv_line<float>(path_to_csv, 0);
