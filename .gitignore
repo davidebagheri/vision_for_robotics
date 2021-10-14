@@ -2,3 +2,6 @@ build
 data
 .vscode
 preview.mp4
+code
+*.mp4
+*.wmv

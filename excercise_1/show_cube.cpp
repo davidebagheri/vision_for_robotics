@@ -1,6 +1,7 @@
 #include <iostream>
-#include "data.h"
-#include "utils.h"
+#include "utils/data.h"
+#include "utils/conversion.h"
+#include "excercise_1/camera_operations.h"
 
 int main(int argc, char** argv){
 	std::string path_to_undistorted = "../data/images_undistorted";
