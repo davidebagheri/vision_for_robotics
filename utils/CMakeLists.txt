@@ -4,4 +4,7 @@ project(utils)
 
 add_library(${PROJECT_NAME} SHARED
 	src/conversion.cpp
+	src/visualizer.cpp
 )
+
+

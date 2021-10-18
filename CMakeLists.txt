@@ -12,6 +12,9 @@ include_directories(
 # Utils 
 add_subdirectory(utils)
 
+add_executable(test_visualizer utils/test_visualizer.cpp) 
+target_link_libraries(test_visualizer utils ${OpenCV_LIBS})
+
 # Excercise 1 - Camera operations
 add_subdirectory(excercise_1)
 
