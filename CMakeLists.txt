@@ -7,6 +7,7 @@ include_directories(
 	${OpenCV_INCLUDE_DIRS}
     utils/include
     excercise_1/include
+    PnP/include
 )
 
 # Utils 
@@ -23,5 +24,13 @@ target_link_libraries(show_cube ${OpenCV_LIBS} excercise_1 utils)
 
 add_executable(undistort_image excercise_1/undistort_image.cpp)
 target_link_libraries(undistort_image ${OpenCV_LIBS} excercise_1 utils)
+
+# Excercise 2 - PnP
+add_subdirectory(PnP)
+
+add_executable(estimate_pose PnP/estimate_pose.cpp)
+target_link_libraries(estimate_pose ${OpenCV_LIBS} PnP utils)
+
+
 
 
