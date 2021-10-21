@@ -4,9 +4,14 @@
 #include "excercise_1/camera_operations.h"
 
 int main(int argc, char** argv){
-	std::string path_to_undistorted = "../data/images_undistorted";
-	std::string path_to_distorted = "../data/images";
-	std::string path_to_D = "../data/D.txt";
+	if (argc != 2){
+		std::cout << "Provide path to data as param!" << std::endl;
+		return -1;
+	}
+	std::string path_to_data(argv[1]);
+	std::string path_to_undistorted = path_to_data + "/images_undistorted";
+	std::string path_to_distorted = path_to_data + "/images";
+	std::string path_to_D = path_to_data + "/D.txt";
 
 	// Get data
 	std::vector<std::string> undistorted_imgs_path = get_images_path(path_to_undistorted);

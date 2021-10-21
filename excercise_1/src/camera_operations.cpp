@@ -41,9 +41,9 @@ cv::Mat poseVectorToTransformationMatrix(const std::vector<float>& pose)
     return res;
 }
 
-cv::Vec2f projectPoint(const std::vector<float>& point_W, const cv::Mat& K, const std::vector<float>& pose_CW)
+cv::Point2f projectPoint(const std::vector<float>& point_W, const cv::Mat& K, const std::vector<float>& pose_CW)
 {
-    cv::Vec2f res;
+    cv::Point2f res;
 
     // Point in homogeneous form
     cv::Mat point_cv_W = to_cv_vec(point_W);
@@ -56,11 +56,31 @@ cv::Vec2f projectPoint(const std::vector<float>& point_W, const cv::Mat& K, cons
     cv::Mat proj_point = K * T_CW * h_point_cv_W;
 
     // Scale normalization 
-    res[0] = proj_point.at<float>(0) / proj_point.at<float>(2);
-    res[1] = proj_point.at<float>(1) / proj_point.at<float>(2);
+    res.x = proj_point.at<float>(0) / proj_point.at<float>(2);
+    res.y = proj_point.at<float>(1) / proj_point.at<float>(2);
 
     return res;
 }
+
+cv::Point2f projectPoint(const cv::Point3f& point_W,  
+                        const cv::Matx33f& K, 
+                        const cv::Matx34f& T_CW)
+{
+    cv::Point2f res;
+
+    // Point in homogeneous form
+    cv::Vec4f homog_point_W = toHomog(point_W);
+
+    // Project
+    cv::Vec3f proj_point = K * T_CW * homog_point_W;
+
+    // Scale normalization 
+    res.x = proj_point[0] / proj_point[2];
+    res.y = proj_point[1] / proj_point[2];
+
+    return res;
+}
+
 
 cv::Point2f toDistortPixelCoords(const cv::Point2f& undist_point, 
                                 const std::vector<float>& dist_params, 

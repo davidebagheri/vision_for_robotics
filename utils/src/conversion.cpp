@@ -33,3 +33,7 @@ cv::Mat to_homog(cv::Mat v){
     res.at<float>(3) = 1.0;
     return res;
 }
+
+cv::Vec4f toHomog(const cv::Point3f& point_3d){
+    return cv::Vec4f(point_3d.x, point_3d.y, point_3d.z, 1);
+}

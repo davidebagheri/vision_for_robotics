@@ -1,8 +1,8 @@
 #include "utils/visualizer.h"
 
-void Visualizer::showWorldFrame(const cv::String& id)
+void Visualizer::showWorldFrame(const cv::String& id, float scale)
 {
-    showWidget(id, cv::viz::WCoordinateSystem());
+    showWidget(id, cv::viz::WCoordinateSystem(scale));
 }
 
 void Visualizer::showPoints(const std::string& id, 

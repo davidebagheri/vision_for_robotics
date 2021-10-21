@@ -29,7 +29,7 @@ target_link_libraries(undistort_image ${OpenCV_LIBS} excercise_1 utils)
 add_subdirectory(PnP)
 
 add_executable(estimate_pose PnP/estimate_pose.cpp)
-target_link_libraries(estimate_pose ${OpenCV_LIBS} PnP utils)
+target_link_libraries(estimate_pose ${OpenCV_LIBS} PnP utils excercise_1)
 
 
 

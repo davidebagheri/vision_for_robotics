@@ -7,9 +7,13 @@ cv::Mat crossProductMatrix(const std::vector<float>& vec);
 
 cv::Mat poseVectorToTransformationMatrix(const std::vector<float>& pose);
 
-cv::Vec2f projectPoint(const std::vector<float>& point,
+cv::Point2f projectPoint(const std::vector<float>& point,
                        const cv::Mat& K, 
                        const std::vector<float>& pose_CW);
+
+cv::Point2f projectPoint(const cv::Point3f& point_W,  
+                        const cv::Matx33f& K, 
+                        const cv::Matx34f& T_CW);
 
 cv::Point2f toDistortPixelCoords(const cv::Point2f& undist_point, 
                                 const std::vector<float>& dist_params, 
