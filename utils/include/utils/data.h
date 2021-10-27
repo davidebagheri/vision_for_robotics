@@ -5,9 +5,9 @@
 #include <glob.h>
 #include <vector>
 
-std::vector<std::string> get_images_path(const std::string& path_to_img_folder){
+std::vector<std::string> get_images_path(const std::string& path_to_img_folder, const std::string& pattern="/*.jpg"){
     std::vector<std::string> ret;
-    std::string imgs_path_pattern = path_to_img_folder + "/*.jpg";
+    std::string imgs_path_pattern = path_to_img_folder + pattern;
 
     glob_t glob_result;
     glob(imgs_path_pattern.c_str(), GLOB_TILDE, NULL, &glob_result);

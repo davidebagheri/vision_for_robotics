@@ -8,13 +8,11 @@ include_directories(
     utils/include
     excercise_1/include
     PnP/include
+    simple_keypoint_tracker/include
 )
 
 # Utils 
 add_subdirectory(utils)
-
-add_executable(test_visualizer utils/test_visualizer.cpp) 
-target_link_libraries(test_visualizer utils ${OpenCV_LIBS})
 
 # Excercise 1 - Camera operations
 add_subdirectory(excercise_1)
@@ -30,6 +28,12 @@ add_subdirectory(PnP)
 
 add_executable(estimate_pose PnP/estimate_pose.cpp)
 target_link_libraries(estimate_pose ${OpenCV_LIBS} PnP utils excercise_1)
+
+# Excercise 3 - Simple Keypoint Tracker
+add_subdirectory(simple_keypoint_tracker)
+
+add_executable(track_video simple_keypoint_tracker/track_video.cpp)
+target_link_libraries(track_video ${OpenCV_LIBS} utils simple_keypoint_tracker)
 
 
 
