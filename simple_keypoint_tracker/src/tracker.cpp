@@ -1,19 +1,20 @@
 #include "simple_keypoint_tracker/tracker.h"
 
 
-std::vector<cv::Point> Tracker::extractKeypoints(const cv::Mat& image){
+std::vector<cv::Point> Tracker::extractKeypoints(const cv::Mat& image, int n_keypoints){
     // Compute harris score
     cv::Mat harris;
     cv::cornerHarris(image, harris, patch_size_, 3, k_harris_);
 
     // Select Keypoints
-    std::vector<cv::Point> keypoints = selectKeypoints(harris, 10, 100);
+    std::vector<cv::Point> keypoints = selectKeypoints(harris, 10, n_keypoints);
 
     return keypoints;
 }
 
 std::vector<cv::Point> Tracker::selectKeypoints(cv::Mat& harris, int nms_range, int n_keypoints){
     std::vector<cv::Point> keypoints;
+
 
     for (int i = 0; i < n_keypoints; i++){
         // Find current max score
@@ -22,9 +23,10 @@ std::vector<cv::Point> Tracker::selectKeypoints(cv::Mat& harris, int nms_range, 
         cv::minMaxLoc(harris, &min, &max, &min_loc, &max_loc);
 
         // Select keypoints in a descrtiptable position
-        if (max_loc.x > patch_size_ / 2 and max_loc.x < harris.cols - patch_size_ / 2
-        and max_loc.y > patch_size_ / 2 and max_loc.y < harris.rows - patch_size_ / 2)
+        if (max_loc.x > left_margin_ and max_loc.x < harris.cols - right_margin_
+        and max_loc.y > upper_margin_ and max_loc.y < harris.rows - lower_margin_){
             keypoints.emplace_back(max_loc);
+        }
 
         // Set neighbouring pixels to zero
         int min_x = std::max(0, max_loc.x - nms_range);
@@ -48,30 +50,28 @@ std::vector<int> Tracker::matchKeypoints(const std::vector<cv::Point>& kps1,
                                                         const std::vector<cv::Point>& kps2, 
                                                         const cv::Mat& image2){
     
-    int n_keypoints = kps1.size();
-    cv::Mat matches_matrix = cv::Mat::zeros(cv::Size(n_keypoints, n_keypoints), CV_32FC1);
-    int half_patch_size = patch_size_/2;
+    cv::Mat matches_matrix = cv::Mat::zeros(cv::Size(kps2.size(), kps1.size()), CV_32FC1);
 
     // Compute distance among descriptors in a brute force approach
-    for (int idx_1 = 0; idx_1 < n_keypoints; idx_1++){
-        for (int idx_2 = 0; idx_2 < n_keypoints; idx_2++){
+    for (int idx_1 = 0; idx_1 < kps1.size(); idx_1++){
+        for (int idx_2 = 0; idx_2 < kps2.size(); idx_2++){
             cv::Point kp1 = kps1[idx_1];
             cv::Point kp2 = kps2[idx_2];
-            cv::Mat descr_1 = image1(cv::Range(kp1.y-half_patch_size, kp1.y+half_patch_size),
-                                    cv::Range(kp1.x-half_patch_size, kp1.x+half_patch_size));
-            cv::Mat descr_2 = image2(cv::Range(kp2.y-half_patch_size, kp2.y+half_patch_size),
-                                    cv::Range(kp2.x-half_patch_size, kp2.x+half_patch_size));
 
+            cv::Mat descr_1 = image1(cv::Range(kp1.y-upper_margin_, kp1.y+lower_margin_),
+                                    cv::Range(kp1.x-left_margin_, kp1.x+right_margin_));
+            cv::Mat descr_2 = image2(cv::Range(kp2.y-upper_margin_, kp2.y+lower_margin_),
+                                    cv::Range(kp2.x-left_margin_, kp2.x+right_margin_));
             matches_matrix.at<float>(idx_1, idx_2) = keypointDistanceSSD(descr_1, descr_2);
         }
     }
 
     // Get the best matches
     std::vector<std::pair<int, double>> best_matches;
-    best_matches.reserve(n_keypoints);
+    best_matches.reserve(kps1.size());
     double min_dist = INFINITY;
-
-    for (int idx_1 = 0; idx_1 < n_keypoints; idx_1++){
+    
+    for (int idx_1 = 0; idx_1 < kps1.size(); idx_1++){
         cv::Point min_loc, max_loc;
         double min, max;
         cv::minMaxLoc(matches_matrix.row(idx_1), &min, &max, &min_loc, &max_loc);
@@ -81,11 +81,11 @@ std::vector<int> Tracker::matchKeypoints(const std::vector<cv::Point>& kps1,
     }
 
     // Apply threshold
-    std::vector<int> matches12(n_keypoints, -1);
-    std::vector<bool> matched2(n_keypoints, false);
+    std::vector<int> matches12(kps1.size(), -1);
+    std::vector<bool> matched2(kps2.size(), false);
     double threshold = lambda_ * min_dist;
     int count = 0;
-    for (int i = 0; i < n_keypoints; i++){
+    for (int i = 0; i < kps1.size(); i++){
         if (!matched2[best_matches[i].first] and best_matches[i].second < threshold){
             matches12[i] = best_matches[i].first;
             matched2[best_matches[i].first] = true;

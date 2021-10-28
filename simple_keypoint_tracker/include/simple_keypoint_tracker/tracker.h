@@ -6,9 +6,13 @@ public:
         patch_size_ = patch_size;
         k_harris_ = k_harris;
         lambda_ = lambda;
+        left_margin_ = (patch_size_-1) / 2;
+        right_margin_ = patch_size_ - left_margin_ - 1;
+        upper_margin_ = (patch_size_-1) / 2;
+        lower_margin_ = patch_size_ - upper_margin_ - 1;
     }
 
-    std::vector<cv::Point> extractKeypoints(const cv::Mat& image);
+    std::vector<cv::Point> extractKeypoints(const cv::Mat& image, int n_keypoints);
 
     std::vector<cv::Point> selectKeypoints(cv::Mat& harris, int nms_range, int n_keypoints);
 
@@ -28,7 +32,16 @@ public:
     }
 
 private:
+    // Patch
     int patch_size_;
+    int left_margin_;
+    int right_margin_;
+    int upper_margin_;
+    int lower_margin_;
+    
+    // Corner detection
     float k_harris_;
+    
+    // Keypoint matching
     float lambda_;
 };
