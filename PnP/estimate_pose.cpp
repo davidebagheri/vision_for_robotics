@@ -1,4 +1,4 @@
-#include "excercise_1/camera_operations.h"
+#include "pinhole_camera/camera_operations.h"
 #include "PnP/PnP.h"
 #include "utils/data.h"
 #include "utils/conversion.h"

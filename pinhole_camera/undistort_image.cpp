@@ -1,7 +1,7 @@
 #include <iostream>
 #include "utils/data.h"
 #include "utils/conversion.h"
-#include "excercise_1/camera_operations.h"
+#include "pinhole_camera/camera_operations.h"
 
 int main(int argc, char** argv){
 	if (argc != 2){

@@ -1,4 +1,4 @@
-#include "excercise_1/camera_operations.h"
+#include "pinhole_camera/camera_operations.h"
 
 cv::Mat crossProductMatrix(const std::vector<float>& vec)
 {
