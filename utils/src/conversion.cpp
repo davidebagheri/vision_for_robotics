@@ -37,3 +37,11 @@ cv::Mat to_homog(cv::Mat v){
 cv::Vec4f toHomog(const cv::Point3f& point_3d){
     return cv::Vec4f(point_3d.x, point_3d.y, point_3d.z, 1);
 }
+
+cv::Vec3f toHomog(const cv::Point2f& point_2d){
+    return cv::Vec3f(point_2d.x, point_2d.y, 1.0);
+}
+
+cv::Matx33f skew(const cv::Vec3f& vec){
+    return cv::Matx33f(0.0, -vec[2], vec[1], vec[2], 0.0, -vec[0], -vec[1], vec[0], 0.0);
+}

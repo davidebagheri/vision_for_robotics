@@ -10,6 +10,7 @@ include_directories(
     PnP/include
     simple_keypoint_tracker/include
     stereo_vision/include
+    eight_point_algorithm/include
 )
 
 # Utils 
@@ -42,5 +43,16 @@ add_subdirectory(stereo_vision)
 add_executable(pointcloud_from_stero stereo_vision/pointcloud_from_stereo.cpp)
 target_link_libraries(pointcloud_from_stero ${OpenCV_LIBS} utils stereo_vision)
 
+# Excercise 5 - Eight Point Algorithm
+add_subdirectory(eight_point_algorithm)
+
+add_executable(test_eight_point_algo eight_point_algorithm/test_eight_point_algo.cpp)
+target_link_libraries(test_eight_point_algo ${OpenCV_LIBS} eight_point_algorithm utils)
+
+add_executable(run_eight_point_algo eight_point_algorithm/run_eight_point_algo.cpp)
+target_link_libraries(run_eight_point_algo ${OpenCV_LIBS} eight_point_algorithm utils)
+
+add_executable(triangulate_points eight_point_algorithm/triangulate_points.cpp)
+target_link_libraries(triangulate_points ${OpenCV_LIBS} eight_point_algorithm utils)
 
 
