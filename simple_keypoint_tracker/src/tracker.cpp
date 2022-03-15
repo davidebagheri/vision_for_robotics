@@ -92,7 +92,7 @@ std::vector<int> Tracker::matchKeypoints(const std::vector<cv::Point>& kps1,
             count++;
         } 
     }
-
+    std::cout << "n matches: " << count << std::endl;
     return matches12;
 }
 

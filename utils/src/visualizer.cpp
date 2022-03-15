@@ -20,3 +20,10 @@ void Visualizer::showFrame(const std::string& id, const cv::Affine3f& pose, floa
 {   
     showWidget(id, cv::viz::WCoordinateSystem(scale), pose);
 }
+
+void Visualizer::showFrame(const std::string& id, const cv::Matx33f& R, const cv::Vec3f& t, float scale)
+{   
+    cv::Affine3f pose(R, t);
+    showWidget(id, cv::viz::WCoordinateSystem(scale), pose);
+}
+

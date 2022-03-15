@@ -7,6 +7,7 @@
 int main(int argc, char** argv){
     if (argc != 2){
         std::cout << "Data path must be passed as argument" << std::endl;
+        return -1;
     }
 
     std::string data_path(argv[1]);
@@ -55,7 +56,7 @@ int main(int argc, char** argv){
         keypoints_old = keypoints_new;
 
         cv::imshow("Matches", image_new);
-        cv::waitKey(2);
+        cv::waitKey(1);
     }
 
     return 0;

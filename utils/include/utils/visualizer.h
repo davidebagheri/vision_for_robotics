@@ -20,4 +20,6 @@ public:
                     const cv::Scalar& color=cv::Scalar(0, 0, 255));
 
     void showFrame(const std::string& id, const cv::Affine3f& pose, float scale=1.0);
+
+    void showFrame(const std::string& id, const cv::Matx33f& R, const cv::Vec3f& t, float scale);
 };

@@ -23,5 +23,5 @@ int main(){
 
     LinearTriangulator lin_triang;
 
-    lin_triang.triangulatePoints(std::pair<cv::Point, cv::Point>(pix_proj_1, pix_proj_2), proj_mat1, proj_mat2);
+    lin_triang.triangulatePoints(pix_proj_1, pix_proj_2, proj_mat1, proj_mat2);
 }

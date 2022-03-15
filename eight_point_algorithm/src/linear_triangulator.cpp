@@ -2,12 +2,13 @@
 
 
 cv::Point3d LinearTriangulator::triangulatePoints(
-        const std::pair<cv::Point2f, cv::Point2f>& correspondences,
+        const cv::Point2f& point_1,
+        const cv::Point2f& point_2,
         const cv::Matx34f& proj_mat_1,
         const cv::Matx34f& proj_mat_2){
         // Build the triangulation system matrix 
         cv::Matx<float, 6, 4> m;
-        getTriangSystemMatrix(correspondences, proj_mat_1, proj_mat_2, m);
+        getTriangSystemMatrix(point_1, point_2, proj_mat_1, proj_mat_2, m);
 
         // Solve
         cv::SVD svd = cv::SVD(m, cv::SVD::FULL_UV);
@@ -20,14 +21,15 @@ cv::Point3d LinearTriangulator::triangulatePoints(
 }
 
 void LinearTriangulator::getTriangSystemMatrix(
-        const std::pair<cv::Point2f, cv::Point2f>& correspondence,
+        const cv::Point2f& point_1,
+        const cv::Point2f& point_2,
         const cv::Matx34f& proj_mat_1,
         const cv::Matx34f& proj_mat_2,
         cv::Matx<float,6,4>& sysmat){
         // Compute skew matrices for each homogenous pixel
-        cv::Vec3f pix1_hom = toHomog(correspondence.first);
+        cv::Vec3f pix1_hom = toHomog(point_1);
         cv::Matx33f pix_1_mat = skew(pix1_hom);
-        cv::Vec3f pix2_hom = toHomog(correspondence.second);
+        cv::Vec3f pix2_hom = toHomog(point_2);
         cv::Matx33f pix_2_mat = skew(pix2_hom);
         
         // Compute the two parts of the system matrix

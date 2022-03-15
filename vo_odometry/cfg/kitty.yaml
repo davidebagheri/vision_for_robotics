@@ -1,0 +1,16 @@
+%YAML:1.0
+
+# Initialization
+n_init_frame: 1
+
+# Initializer
+initializer.bearing_angle_th: 1
+
+# Feature matcher
+feature_matcher.patch_radius: 8
+feature_matcher.n_keypoints: 200 
+feature_matcher.nms: 10
+feature_matcher.ksize: 11
+feature_matcher.k: 0.08
+feature_matcher.tracking_err_th: 20
+

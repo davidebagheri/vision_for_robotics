@@ -6,12 +6,14 @@
 class LinearTriangulator{
 public:
     cv::Point3d triangulatePoints(
-        const std::pair<cv::Point2f, cv::Point2f>& correspondences,
+        const cv::Point2f& point_1,
+        const cv::Point2f& point_2,
         const cv::Matx34f& proj_mat_1,
         const cv::Matx34f& proj_mat_2);
     
     void getTriangSystemMatrix(
-        const std::pair<cv::Point2f, cv::Point2f>& correspondences,
+        const cv::Point2f& point_1,
+        const cv::Point2f& point_2,
         const cv::Matx34f& proj_mat_1,
         const cv::Matx34f& proj_mat_2,
         cv::Matx<float,6,4>& sysmat);

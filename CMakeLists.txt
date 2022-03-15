@@ -11,6 +11,7 @@ include_directories(
     simple_keypoint_tracker/include
     stereo_vision/include
     eight_point_algorithm/include
+    vo_odometry/include
 )
 
 # Utils 
@@ -55,4 +56,15 @@ target_link_libraries(run_eight_point_algo ${OpenCV_LIBS} eight_point_algorithm 
 add_executable(triangulate_points eight_point_algorithm/triangulate_points.cpp)
 target_link_libraries(triangulate_points ${OpenCV_LIBS} eight_point_algorithm utils)
 
+# Final VO odometry
+add_subdirectory(vo_odometry)
 
+add_executable(main_kitty vo_odometry/src/main_kitty.cpp)
+target_link_libraries(main_kitty ${OpenCV_LIBS} vo_odometry utils)
+
+add_executable(random_test vo_odometry/src/random_test.cpp)
+target_link_libraries(random_test ${OpenCV_LIBS})
+
+
+#add_executable(of_test vo_odometry/src/of_test.cpp)
+#target_link_libraries(of_test ${OpenCV_LIBS} vo_odometry utils)
