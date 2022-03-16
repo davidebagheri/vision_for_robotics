@@ -14,7 +14,7 @@ std::vector<cv::Point2f> Tracker::extractKeypoints(const cv::Mat& image) const{
 
 std::vector<cv::Point2f> Tracker::selectKeypoints(const cv::Mat& harris, 
                                                        int nms_range, 
-                                                       int n_keypoints) const{
+                                                       int n_keypoints) const {
     std::vector<cv::Point2f> keypoints;
 
     for (int i = 0; i < n_keypoints; i++){
@@ -40,10 +40,39 @@ std::vector<cv::Point2f> Tracker::selectKeypoints(const cv::Mat& harris,
     return keypoints;
 }
 
-void Tracker::extractKeypoints(Frame* frame){
+void Tracker::extractKeypoints(Frame* frame) const {
     frame->keypoints_ = extractKeypoints(frame->img_);
     frame->matches_ = std::vector<int>(frame->keypoints_.size(), -1);
     frame->points_3d_ = std::vector<cv::Point3f>(frame->keypoints_.size(), cv::Point3f(INFINITY, INFINITY, INFINITY));
+}
+
+void Tracker::addNewKeypoints(Frame* frame) const {
+    if (frame->keypoints_.size() >= n_max_kpts_) return;    // Enough keypoints
+
+    // Store the keypoints positions in a binary image
+    cv::Mat kpts_img = cv::Mat::zeros(frame->img_.size(), CV_8U);
+
+    for (auto& kp : frame->keypoints_){
+        kpts_img.at<uint8_t>(kp.y, kp.x) = 1;
+    }
+
+    // Extract new keypoints
+    std::vector<cv::Point2f> new_kpts = extractKeypoints(frame->img_);
+
+    // Check for vicinity keypoints
+    for (auto& kp : new_kpts){
+        cv::Mat patch = kpts_img(
+            cv::Range(std::max(0, (int)kp.y - max_dist_new_kp_), std::min(kpts_img.rows, (int)kp.y + max_dist_new_kp_)),
+            cv::Range(std::max(0, (int)kp.x - max_dist_new_kp_), std::min(kpts_img.cols, (int)kp.x + max_dist_new_kp_))
+        );
+
+        if (cv::sum(patch)(0) > 0) continue;    // There is already another keypoint close to the new computed one
+
+        frame->keypoints_.emplace_back(kp);
+        frame->matches_.emplace_back(-1);
+
+        if (frame->keypoints_.size() >= n_max_kpts_) return;  // Max number of keypoints reached
+    }
 }
 
 void Tracker::trackPoints(const cv::Mat& old_image,
@@ -75,7 +104,7 @@ void Tracker::trackPoints(const cv::Mat& old_image,
 
     std::cout << "Tracked " << counter << " keypoints!\n";
 
-    matches = good_matches;
+    matches = std::move(good_matches);
 }
 
 

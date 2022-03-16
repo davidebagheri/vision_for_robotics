@@ -6,11 +6,11 @@ n_init_frame: 1
 # Initializer
 initializer.bearing_angle_th: 1
 
-# Feature matcher
-feature_matcher.patch_radius: 8
-feature_matcher.n_keypoints: 200 
-feature_matcher.nms: 10
-feature_matcher.ksize: 11
-feature_matcher.k: 0.08
-feature_matcher.tracking_err_th: 20
-
+# Feature Tracker
+tracker.patch_radius: 8
+tracker.n_keypoints: 200 
+tracker.nms: 10
+tracker.ksize: 11
+tracker.k: 0.08
+tracker.tracking_err_th: 20
+tracker.max_dist_new_kp: 10

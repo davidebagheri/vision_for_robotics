@@ -54,6 +54,10 @@ bool VOSystem::processImage(const cv::Mat& image){
             if (n_frame_ == n_init_frame_){
                 // Initialize through 5pt algorithm-RANSAC and triangulate inliers
                 initializer_->initialize(current_frame_, first_frame_, *camera_);
+
+                // Extract new keypoints 
+                tracker_->addNewKeypoints(current_frame_);
+
                 state_ = TRACKING;
             } 
 
@@ -62,6 +66,15 @@ bool VOSystem::processImage(const cv::Mat& image){
         }
         case TRACKING:
         {
+            current_frame_ = new Frame(image);
+            
+            // Track previous keypoints
+            tracker_->trackPoints(*prev_frame_, *current_frame_);
+
+            // Recover pose through Pnp
+
+            // Extract new keypoints if necessary
+            tracker_->addNewKeypoints(current_frame_);
 
             break;
         }
