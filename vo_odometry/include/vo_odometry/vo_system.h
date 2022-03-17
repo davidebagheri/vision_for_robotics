@@ -15,32 +15,13 @@ public:
 
     bool processImage(const cv::Mat& image);
 
-    State getState(){
-        return state_;
-    }
+    const State& getState();
 
-    bool getPose(cv::Matx33f& R, cv::Vec3f& t){
-        if (current_frame_ != nullptr){
-            R = current_frame_->R_;
-            t = current_frame_->t_;
-            return true;
-        } 
-        return false;
-    }
+    bool getPose(cv::Matx33f& R, cv::Vec3f& t);
 
-    bool get3dPoints(std::vector<cv::Point3f>& points_3d){
-        if (current_frame_ != nullptr and current_frame_->points_3d_.size() != 0){
-            points_3d = current_frame_->points_3d_;
-            return true;
-        }
-        return false;
-    }
+    bool get3dPoints(std::vector<cv::Point3f>& points_3d);
 
-    void visualize(cv::Mat img){
-        for (int i = 0; i < current_frame_->keypoints_.size(); i++){
-                cv::circle(img, current_frame_->keypoints_[i], 2, cv::Scalar(0,255,0), 2);            
-        }
-    }
+    void visualize(cv::Mat img);
 
 private:
     State state_;

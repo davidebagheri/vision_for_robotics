@@ -4,7 +4,7 @@
 n_init_frame: 1
 
 # Initializer
-initializer.bearing_angle_th: 1
+initializer.bearing_angle_th: 0
 
 # Feature Tracker
 tracker.patch_radius: 8
@@ -12,5 +12,7 @@ tracker.n_keypoints: 200
 tracker.nms: 10
 tracker.ksize: 11
 tracker.k: 0.08
-tracker.tracking_err_th: 20
+tracker.tracking_err_th: 40
 tracker.max_dist_new_kp: 10
+
+tracker.bearing_angle_th: 0

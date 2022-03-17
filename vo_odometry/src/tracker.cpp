@@ -1,5 +1,5 @@
 #include "vo_odometry/tracker.h"
-
+#include "vo_odometry/converter.h"
 
 std::vector<cv::Point2f> Tracker::extractKeypoints(const cv::Mat& image) const{
     // Compute harris score
@@ -102,8 +102,6 @@ void Tracker::trackPoints(const cv::Mat& old_image,
         }
     }
 
-    std::cout << "Tracked " << counter << " keypoints!\n";
-
     matches = std::move(good_matches);
 }
 
@@ -112,3 +110,79 @@ void Tracker::trackPoints(Frame& old_frame, Frame& new_frame){
     trackPoints(old_frame.img_, new_frame.img_, old_frame.keypoints_, new_frame.keypoints_, old_frame.matches_);
 }
     
+void Tracker::estimatePose(Frame& old_frame, Frame& new_frame, std::vector<int>& inlier_matches, const Camera& camera){
+    int n_old_triang_pts = old_frame.points_3d_.size(); // Number of the points triangulated in the old frame
+
+    // Estimate Pose with Pnp and Ransac
+    std::vector<cv::Point3f> pts3d;
+    std::vector<cv::Point2f> new_pixels;
+    std::vector<int> match_new_old;
+    
+    for (int i = 0; i < n_old_triang_pts; i++){
+        if (old_frame.matches_[i] > -1){
+            pts3d.emplace_back(old_frame.points_3d_[i]);
+            new_pixels.emplace_back(new_frame.keypoints_[old_frame.matches_[i]]);
+            match_new_old.emplace_back(i);
+        }
+    }
+
+    std::cout << "Pnp inliers are " << pts3d.size() << " keypoints!\n";
+
+    cv::Mat Rvec, t, inliers;
+    cv::solvePnPRansac(pts3d, new_pixels, camera.getCameraMatrix(), cv::noArray(), Rvec, t, false, 100, 40, 0.99, inliers);
+    
+    cv::Mat R;
+    cv::Rodrigues(Rvec, R);
+    
+    new_frame.R_ = convertRotationMatrix<float>(R);
+    new_frame.t_ = convertTraslationVector<float>(t);
+
+    for (int i = 0; i < inliers.rows; i++){
+        inlier_matches.emplace_back(match_new_old[inliers.at<int>(i,0)]);
+    }
+}
+
+std::vector<cv::Point3f> Tracker::triangulateAddedKeypoints(Frame& old_frame, Frame& new_frame, const Camera& camera){
+    std::vector<cv::Point3f> res;
+    int n_old_triang_pts = old_frame.points_3d_.size(); // Number of the points triangulated in the old frame
+
+    cv::Matx34f oldProjMat = camera.getCameraMatrix() * getTransformFromRT<float>(old_frame.R_, old_frame.t_);
+    cv::Matx34f newProjMat = camera.getCameraMatrix() * getTransformFromRT<float>(new_frame.R_, new_frame.t_);
+
+    for (int i = n_old_triang_pts; i < old_frame.keypoints_.size(); i++){
+        if (old_frame.matches_[i] != -1){
+            cv::Point2f& old_pixel = old_frame.keypoints_[i];
+            cv::Point2f& new_pixel = new_frame.keypoints_[i];
+            
+            // Compute bearing vectors and the angle in between
+            cv::Vec3f old_vec = old_frame.R_ * camera.camToWorld(old_pixel);
+            cv::Vec3f new_vec = new_frame.R_ * camera.camToWorld(new_pixel);
+            float angle = std::acos(old_vec.dot(new_vec) / (cv::norm(old_vec) * cv::norm(new_vec)));
+
+            // Check if the angle between bearing vectors is enough  
+            if (angle > bearing_angle_th_){
+                // Triangulate
+                cv::Mat point_4d;
+
+                cv::triangulatePoints(oldProjMat, 
+                                      newProjMat, 
+                                      pixToVec<float>(old_pixel), 
+                                      pixToVec<float>(new_pixel), 
+                                      point_4d);
+                
+                // Normalize and store the result
+                float x = point_4d.at<float>(0,0);
+                float y = point_4d.at<float>(0,1);
+                float z = point_4d.at<float>(0,2);
+                float w = point_4d.at<float>(0,3);
+
+                cv::Point3f pt3d(x/w, y/w, z/w);
+
+                res.emplace_back(pt3d);
+            } else {
+                old_frame.matches_[i] = -1;
+            }
+        }
+    }
+    return res;
+}

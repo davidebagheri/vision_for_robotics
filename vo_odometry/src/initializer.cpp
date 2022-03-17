@@ -39,7 +39,6 @@ void Initializer::initialize(Frame* init_frame,
     cv::Matx34f firstProjMat = camera.getCameraMatrix() * getTransformFromRT<float>(first_frame->R_, first_frame->t_);
     cv::Matx34f initProjMat = camera.getCameraMatrix() * getTransformFromRT<float>(init_frame->R_, init_frame->t_);
 
-
     for (int i = 0; i < first_frame->keypoints_.size(); i++){
         if (match_inliers.at<uint8_t>(0, i) > 0){   // Check if inlier
             cv::Point2f& first_pixel = first_frame->keypoints_[i];
@@ -48,7 +47,7 @@ void Initializer::initialize(Frame* init_frame,
             // Compute bearing vectors and the angle in between
             cv::Vec3f first_vec = first_frame->R_ * camera.camToWorld(first_pixel);
             cv::Vec3f init_vec = init_frame->R_ * camera.camToWorld(init_pixel);
-            float angle = std::acos(std::acos(first_vec.dot(init_vec) / (cv::norm(first_vec) * cv::norm(init_vec))));
+            float angle = std::acos(first_vec.dot(init_vec) / (cv::norm(first_vec) * cv::norm(init_vec)));
 
             // Check if the angle between bearing vectors is enough  
             if (angle > bearing_angle_th_){
@@ -66,9 +65,9 @@ void Initializer::initialize(Frame* init_frame,
                 float y = point_4d.at<float>(0,1);
                 float z = point_4d.at<float>(0,2);
                 float w = point_4d.at<float>(0,3);
+                cv::Point3f pt3d(x/w, y/w, z/w);
 
                 // Check for negative depth
-                cv::Point3f pt3d(x/w, y/w, z/w);
                 if (pt3d.z < 0) continue;  
 
                 init_kpts_inliers.emplace_back(init_pixel);      

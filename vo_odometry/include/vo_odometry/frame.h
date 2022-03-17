@@ -31,6 +31,8 @@ public:
     // Pose
     cv::Matx33f R_;
     cv::Vec3f t_;
+
+    int n_pnp_kp_ = 0;
 };
 
 

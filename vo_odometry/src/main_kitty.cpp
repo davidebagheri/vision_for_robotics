@@ -25,7 +25,7 @@ int main(int argc, char** argv){
     Visualizer vis("Visualizer");
     vis.spinOnce();
     // Loop
-    for (int i = 1; i < imgpaths.size(); i++){
+    for (int i = atoi(argv[1]); i < imgpaths.size(); i++){
         cv::Mat image = cv::imread(imgpaths[i]);
         cv::Mat gray;
         cv::cvtColor(image, gray, CV_BGR2GRAY);
@@ -56,12 +56,12 @@ int main(int argc, char** argv){
         
         vis.spinOnce();
 
-        if (cv::waitKey(1000) == 27) break;
+        if (cv::waitKey(30) == 27) break;
 
                 // Remove later
-        if (vo_system.getState() == TRACKING){
-            break;
-        }
+        //if (vo_system.getState() == TRACKING){
+        //    break;
+        //}
 
 
     }
