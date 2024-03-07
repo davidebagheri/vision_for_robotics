@@ -1,0 +1,18 @@
+%YAML:1.0
+
+# Camera
+camera.fx: 331.37
+camera.fy: 369.568
+camera.u0: 320
+camera.v0: 240
+
+# Initialization
+n_init_frame: 2
+initializer.max_reproj_error: 1
+
+# Tracker
+tracker.min_frame_keypoints: 350
+tracker.min_depth: 1
+tracker.max_depth: 100
+
+

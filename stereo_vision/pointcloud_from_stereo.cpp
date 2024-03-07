@@ -18,8 +18,8 @@ int main(int argc, char** argv){
     cv::Mat left_img_rgb = cv::imread(left_images_paths[0]);
     cv::Mat right_img_rgb = cv::imread(right_images_paths[0]);
     cv::Mat left_img, right_img;
-    cv::cvtColor(left_img_rgb, left_img, CV_BGR2GRAY);
-    cv::cvtColor(right_img_rgb, right_img, CV_BGR2GRAY);
+    cv::cvtColor(left_img_rgb, left_img, cv::COLOR_BGR2GRAY);
+    cv::cvtColor(right_img_rgb, right_img, cv::COLOR_BGR2GRAY);
     left_img.convertTo(left_img, CV_32FC1);
     right_img.convertTo(right_img, CV_32FC1);
 

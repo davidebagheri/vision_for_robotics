@@ -27,7 +27,7 @@ cv::Matx34f estimatePoseDLT(const std::vector<cv::Point2f>& point_2d,
     cv::Mat R_tilde = svd_R.u * svd_R.vt;
 
     // Recover scale
-    float scale = cv::norm(R_tilde, CV_L2) / cv::norm(R, CV_L2);
+    float scale = cv::norm(R_tilde) / cv::norm(R);
 
     cv::Mat t = M(cv::Range(0,3), cv::Range(3,4)) * scale;
     

@@ -2,55 +2,37 @@
 #define TRACKER_H
 
 #include <opencv2/opencv.hpp>
+#include <opencv2/features2d.hpp>
 
 #include "vo_odometry/frame.h"
 #include "vo_odometry/camera.h"
+#include "vo_odometry/utils.h"
+#include "vo_odometry/map.h"
 
 class Tracker{
 public:
     Tracker(const cv::FileStorage& params){
-        patch_radius_ = (int) params["tracker.patch_radius"];
-        n_keypoints_ = (int) params["tracker.n_keypoints"]; 
-        nms_ = (int) params["tracker.nms"];
-        ksize_ = (int) params["tracker.ksize"];
-        k_ = (float) params["tracker.k"];
-        tracking_err_th_ = (float) params["tracker.tracking_err_th"];
-        max_dist_new_kp_ = (int) params["tracker.max_dist_new_kp"];
-        bearing_angle_th_ = (float) params["tracker.bearing_angle_th"];
+        min_frame_keypoints_ = (float) params["tracker.min_frame_keypoints"];
+        min_depth_ = (float) params["tracker.min_depth"];
+        max_depth_ = (float) params["tracker.max_depth"];
     }
 
-    std::vector<cv::Point2f> extractKeypoints(const cv::Mat& image) const;
+    std::vector<cv::Point2f> extractKeypoints(const Frame& frame, int max_n_keypoints, float quality_level, bool use_mask) const;
 
-    void extractKeypoints(Frame* frame) const;
+    void trackKeypoints(const Frame& previous_frame, Frame* next_frame) const;
 
-    void addNewKeypoints(Frame* frame) const;
-    
-    std::vector<cv::Point2f> selectKeypoints(const cv::Mat& harris, int nms_range, int n_keypoints) const; 
+    bool estimatePose(const Frame& previous_frame, Frame* cur_frame, const Map& map, const Camera& cam) const;
 
-    void trackPoints(const cv::Mat& old_image,
-                     const cv::Mat& new_image, 
-                     const std::vector<cv::Point2f>& old_kpts, 
-                     std::vector<cv::Point2f>& next_kpts,
-                     std::vector<int>& matches);
-    
-    void trackPoints(Frame& old_frame, Frame& new_frame);
+    void triangulateUnmatchedKeypoints(Frame* previous_frame, Frame* cur_frame, Map* map, const Camera& camera) const;
 
-    void estimatePose(Frame& old_frame, Frame& new_frame, std::vector<int>& inlier_matches, const Camera& camera);
+    void printPointCoordHisto(const std::vector<cv::Point3f>& points3d, const Frame& previous_frame) const;
 
-    std::vector<cv::Point3f> triangulateAddedKeypoints(Frame& old_frame, Frame& new_frame, const Camera& camera);
+    void addNewKeypoints(Frame* frame, const std::vector<cv::Point2f>& new_kpts) const;
 
 private:
-    // Feature extraction params
-    int patch_radius_;  
-    int n_keypoints_;           // Number of keypoints to extract for each image
-    int nms_;                   // Non-maximum-suppression range
-    int ksize_;                 // Aperture parameter of the Sobel derivative used
-    float k_;                   // Harris detector free parameter in the equation
-    float tracking_err_th_;     // Lukas Kanade Tracker error threshold
-    int max_dist_new_kp_;       // Max distance from a new extracted keypoint and the preexisting ones
-    int n_max_kpts_;            // Maximum number of keypoints per frame
-
-    float bearing_angle_th_;    // Maximum angle for triangulation
+    int min_frame_keypoints_ = 50;  // Minimum number of keypoints in the current frame
+    float min_depth_ = 3;            // Minimum z distance [m] for a triangulated point to be valid  
+    float max_depth_ = 80;           // Maximum z distance [m] for a triangulated point to be valid
 };
 
 

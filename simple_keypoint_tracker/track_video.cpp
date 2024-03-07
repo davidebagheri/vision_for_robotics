@@ -25,7 +25,7 @@ int main(int argc, char** argv){
         cv::Mat image_new = cv::imread(images_paths[i]);
         cv::imshow("Matches", image_new);
         cv::Mat gray_new;
-        cv::cvtColor(image_new, gray_new, CV_BGR2GRAY);
+        cv::cvtColor(image_new, gray_new, cv::COLOR_BGR2GRAY);
         gray_new.convertTo(gray_new, CV_32FC1);
         
         // Extract keypoints

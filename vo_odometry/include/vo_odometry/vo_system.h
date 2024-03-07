@@ -4,39 +4,39 @@
 #include "vo_odometry/frame.h"
 #include "vo_odometry/tracker.h"
 #include "vo_odometry/initializer.h"
-#include "vo_odometry/converter.h"
+#include "vo_odometry/map.h"
 #include "vo_odometry/camera.h"
 
-enum State {FIRST_IMAGE, INITIALIZING, TRACKING};
+enum State {NONE, FIRST_IMAGE, INITIALIZING, TRACKING};
 
 class VOSystem{
 public:
     VOSystem(const cv::FileStorage& params);
 
+    ~VOSystem(){
+        delete tracker_;
+        delete initializer_;
+        delete camera_;
+        delete map_;
+    }
+
     bool processImage(const cv::Mat& image);
 
-    const State& getState();
-
-    bool getPose(cv::Matx33f& R, cv::Vec3f& t);
-
-    bool get3dPoints(std::vector<cv::Point3f>& points_3d);
-
-    void visualize(cv::Mat img);
+    void visualize(cv::Mat* img);
 
 private:
-    State state_;
+    State state_, prev_state_;
 
-    // Modules
     Tracker* tracker_;
     Initializer* initializer_;
     Camera* camera_;
     
-    // Variables
     int n_frame_;
-    Frame* first_frame_;
-    Frame* prev_frame_;
-    Frame* current_frame_;
-    
+    Frame* first_frame_ = nullptr;
+    Frame* prev_frame_ = nullptr;
+    Frame* current_frame_ = nullptr;
+    Map* map_ = nullptr;
+        
     // Params
     int n_init_frame_;
 };

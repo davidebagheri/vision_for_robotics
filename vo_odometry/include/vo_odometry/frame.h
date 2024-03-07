@@ -3,36 +3,32 @@
 
 #include <opencv2/opencv.hpp>
 
-
 class Frame {
 public:
-    Frame(const cv::Mat& image){
-        if (image.channels() != 1){
-            std::cerr << "Image must be grayscale!" << std::endl;
-            return;
-        }
+    Frame() = default;
+    ~Frame() = default;
+    
+    Frame(const cv::Mat& image, int frame_n){
         img_ = image;
-    }
-
-
-    void setPose(const cv::Matx33f& R, const cv::Vec3f& t){
-        R_ = R;
-        t_ = t;
+        frame_n_ = frame_n;
     }
 
     // Image
+    int frame_n_;
     cv::Mat img_;
 
     // Features and projections
-    std::vector<int> matches_;
-    std::vector<cv::Point2f> keypoints_;
-    std::vector<cv::Point3f> points_3d_;
+    std::vector<cv::Point2f> keypoints_;            // 2d visual features location
+    std::vector<int> matches_;                      // Matches with the previous frame 
+    std::vector<int> keypoints_map_id_;             // Id mapping keypoints and map 3d points 
+    std::vector<cv::Point2f> candidate_keypoints_;  // Untracked 2d keypoints
+    std::vector<int> candidate_keypoints_matches_;  // Untracked 2d keypoints matches with the previous frame
+
+    int n_keypoints_used_for_pose_estimation_;
     
     // Pose
-    cv::Matx33f R_;
-    cv::Vec3f t_;
+    cv::Affine3f pose;
 
-    int n_pnp_kp_ = 0;
 };
 
 

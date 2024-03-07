@@ -12,7 +12,6 @@ tracker.n_keypoints: 200
 tracker.nms: 10
 tracker.ksize: 11
 tracker.k: 0.08
-tracker.tracking_err_th: 40
 tracker.max_dist_new_kp: 10
 
 tracker.bearing_angle_th: 0

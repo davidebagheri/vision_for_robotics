@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20.1)
+cmake_minimum_required(VERSION 3.16.3)
 project(vision_for_robotics)
 
 find_package(OpenCV REQUIRED)
@@ -59,12 +59,5 @@ target_link_libraries(triangulate_points ${OpenCV_LIBS} eight_point_algorithm ut
 # Final VO odometry
 add_subdirectory(vo_odometry)
 
-add_executable(main_kitty vo_odometry/src/main_kitty.cpp)
-target_link_libraries(main_kitty ${OpenCV_LIBS} vo_odometry utils)
-
-add_executable(random_test vo_odometry/src/random_test.cpp)
-target_link_libraries(random_test ${OpenCV_LIBS})
-
-
-#add_executable(of_test vo_odometry/src/of_test.cpp)
-#target_link_libraries(of_test ${OpenCV_LIBS} vo_odometry utils)
+add_executable(main vo_odometry/src/main.cpp)
+target_link_libraries(main ${OpenCV_LIBS} vo_odometry utils)

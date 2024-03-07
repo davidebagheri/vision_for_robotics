@@ -1,91 +1,61 @@
 #include "vo_odometry/initializer.h"
 
-
 Initializer::Initializer(const cv::FileStorage& params){
-    bearing_angle_th_ = (int)params["initializer.bearing_angle_th"];
+    max_reproj_error_ = (float) params["initializer.max_reproj_error"];
 }
 
-void Initializer::initialize(Frame* init_frame, 
-                             Frame* first_frame,
-                             const Camera& camera
-                             ){
+void Initializer::initialize(Frame* init_frame, Frame* first_frame, Map* map, const Camera& camera){
     // Retrieve matched keypoints
-    std::vector<cv::Point2f> first_keypoints, init_keypoints;
-    for (int i = 0; i < first_frame->matches_.size(); i++){
-        int match = first_frame->matches_[i];
-        if (match >= 0){
-            first_keypoints.emplace_back(first_frame->keypoints_[i]);
-            init_keypoints.emplace_back(init_frame->keypoints_[match]);
-        }
+    std::vector<cv::Point2f> first_frame_keypoints;
+    for (int i = 0; i < init_frame->matches_.size(); i++){
+        int first_frame_match = init_frame->matches_[i];
+        first_frame_keypoints.push_back(first_frame->keypoints_[first_frame_match]);
     }
 
     // Find Essential Matrix through Ransac and 5pt algorithm
+    std::cout << "[Initializer] Initializing with " << first_frame_keypoints.size() << " matches" << std::endl;
     cv::Mat match_inliers;
-    cv::Mat E = cv::findEssentialMat(first_keypoints, init_keypoints, camera.getCameraMatrix(), cv::RANSAC, 0.9999, 1, match_inliers);
+    cv::Mat E = cv::findEssentialMat(init_frame->keypoints_, first_frame_keypoints, camera.getCameraMatrix(), cv::RANSAC, 0.9999, max_reproj_error_, match_inliers);
+
+    int ransac_5pt_algo_inliers_count = cv::countNonZero(match_inliers);
+    std::cout << "[Initializer] Ransac-5pt algo -> Inliers: " << ransac_5pt_algo_inliers_count << "/" << match_inliers.rows << " (" << (float)ransac_5pt_algo_inliers_count * 100 / (float)match_inliers.rows << "%)" << std::endl;
 
     // Recover pose checking for each of the for possible solutions whether the points have positive depth
     cv::Mat R, t;
-    cv::recoverPose( E, first_keypoints, init_keypoints, camera.getCameraMatrix(), R, t, match_inliers);
+    cv::recoverPose( E, init_frame->keypoints_, first_frame_keypoints, camera.getCameraMatrix(), R, t, match_inliers);
+    int recover_pose_inliers_count = cv::countNonZero(match_inliers);
+    std::cout << "[Initializer] Recover pose -> Inliers: " << recover_pose_inliers_count << "/" << match_inliers.rows << " (" << (float)recover_pose_inliers_count * 100 / (float)match_inliers.rows << "%)" << std::endl;
 
-    init_frame->R_ = convertRotationMatrix<float>(R.t());
-    init_frame->t_ = convertTraslationVector<float>(-t);
+    std::cout << "[Initializer] init R:" << std::endl; 
+    std::cout << R << std::endl;
+    std::cout << "[Initializer] init t:" << std::endl;
+    std::cout << t << std::endl;
 
-    // Triangulate inliers  
-    int n_inliers = 0;
-    std::vector<cv::Point2f> init_kpts_inliers;
-    std::vector<cv::Point3f> init_points_3d;
+    init_frame->pose = cv::Affine3d(R, t);
+    
+    // Filter out the outliers
+    init_frame->keypoints_ = utils::FilterVector(init_frame->keypoints_, match_inliers, nullptr);
+    init_frame->matches_ = utils::FilterVector(init_frame->matches_, match_inliers, nullptr);
 
-    // Precompute projection matrices
-    cv::Matx34f firstProjMat = camera.getCameraMatrix() * getTransformFromRT<float>(first_frame->R_, first_frame->t_);
-    cv::Matx34f initProjMat = camera.getCameraMatrix() * getTransformFromRT<float>(init_frame->R_, init_frame->t_);
-
-    for (int i = 0; i < first_frame->keypoints_.size(); i++){
-        if (match_inliers.at<uint8_t>(0, i) > 0){   // Check if inlier
-            cv::Point2f& first_pixel = first_frame->keypoints_[i];
-            cv::Point2f& init_pixel = init_frame->keypoints_[i];
-            
-            // Compute bearing vectors and the angle in between
-            cv::Vec3f first_vec = first_frame->R_ * camera.camToWorld(first_pixel);
-            cv::Vec3f init_vec = init_frame->R_ * camera.camToWorld(init_pixel);
-            float angle = std::acos(first_vec.dot(init_vec) / (cv::norm(first_vec) * cv::norm(init_vec)));
-
-            // Check if the angle between bearing vectors is enough  
-            if (angle > bearing_angle_th_){
-                // Triangulate
-                cv::Mat point_4d;
-
-                cv::triangulatePoints(initProjMat, 
-                                      firstProjMat, 
-                                      pixToVec<float>(init_pixel), 
-                                      pixToVec<float>(first_pixel), 
-                                      point_4d);
-                
-                // Normalize and store the result
-                float x = point_4d.at<float>(0,0);
-                float y = point_4d.at<float>(0,1);
-                float z = point_4d.at<float>(0,2);
-                float w = point_4d.at<float>(0,3);
-                cv::Point3f pt3d(x/w, y/w, z/w);
-
-                // Check for negative depth
-                if (pt3d.z < 0) continue;  
-
-                init_kpts_inliers.emplace_back(init_pixel);      
-                init_points_3d.emplace_back(pt3d);   
-
-                first_frame->matches_[i] = n_inliers;
-                n_inliers++;
-            } else {
-                first_frame->matches_[i] = -1;  // Remove match
-            }
-        } else {
-            first_frame->matches_[i] = -1;  // Remove match
-        }
+    // Gather the inliers keypoints of the first frame
+    std::vector<cv::Point2f> first_inliers_keypoints;
+    
+    for (int i = 0; i < init_frame->keypoints_.size(); i++){
+            int match = init_frame->matches_[i];
+            first_inliers_keypoints.push_back(first_frame->keypoints_[match]);
     }
 
-    std::cout << "N inliers: " << n_inliers << std::endl;
+    // Triangulate inliers    
+    cv::Mat firstProjMat = cv::Mat( camera.getCameraMatrix() ) * cv::Mat( first_frame->pose.inv().matrix ).rowRange(0, 3);
+    cv::Mat initProjMat = cv::Mat( camera.getCameraMatrix() ) * cv::Mat( init_frame->pose.inv().matrix ).rowRange(0, 3);    
 
-    init_frame->keypoints_ = std::move(init_kpts_inliers);
-    init_frame->matches_ = std::vector(n_inliers, -1);
-    init_frame->points_3d_ = std::move(init_points_3d);
+    cv::Mat points4D, points3D;
+    cv::triangulatePoints(initProjMat, firstProjMat, init_frame->keypoints_, first_inliers_keypoints, points4D);
+    cv::convertPointsFromHomogeneous(points4D.t(), points3D);
+    points3D = points3D.reshape(1);     // Convert from an array of n Point3f to a matrix with size n x 3
+
+    // Insert in the map
+    init_frame->keypoints_map_id_ = map->registerPoints(points3D);
+
+    std::cout << "[Initializer] Triangulated " << init_frame->keypoints_map_id_.size() << " points" << std::endl;
 }

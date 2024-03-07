@@ -7,16 +7,17 @@
 class Camera{
     public:
         Camera(const cv::FileStorage& params){
-            // TODO: make it parametric
-            K = cv::Matx33f(7.188560000000e+02, 0.0, 6.071928000000e+02,
-                            0.0, 7.188560000000e+02, 1.852157000000e+02,
-                            0.0, 0.0, 1.0);
-            K_inv = cv::Matx33f(1 / K(0,0), 0, -K(0,2) / K(0,0),
-                                0, 1 / K(1,1), -K(1,2) / K(1,1),
-                                0, 0, 1);
+            fx = (float)params["camera.fx"];
+            fy = (float)params["camera.fy"];
+            u0 = (float)params["camera.u0"];
+            v0 = (float)params["camera.v0"];
+            K = cv::Matx33f(fx, 0.0, u0, 0.0, fy, v0, 0.0, 0.0, 1.0);
+            K_inv = cv::Matx33f(1 / fx, 0, -u0 / fx, 0, 1 / fy, -v0 / fy, 0, 0, 1);
         }
 
-        const cv::Matx33f& getCameraMatrix() const { return K; }
+        const cv::Matx33f& getCameraMatrix() const {
+            return K; 
+        }
 
         cv::Vec3f camToWorld(const cv::Point2f& pixel) const {
             cv::Vec3f pixel_h = {pixel.x, pixel.y, 1};
@@ -29,6 +30,10 @@ class Camera{
         }
 
     private:
+        float fx;
+        float fy;
+        float u0;
+        float v0;
         cv::Matx33f K;
         cv::Matx33f K_inv;
 };
